@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.perplexity.ai/computer/a/lumena-0P_3yc.5Rf2vgDoR2OJd1Q/sitemap.xml

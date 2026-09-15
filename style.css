@@ -282,6 +282,10 @@ p { color: var(--text-muted); }
 .split-media img { width: 100%; height: 100%; object-fit: cover; }
 .split-media.evidence-visual-media { aspect-ratio: 1.846; background: var(--surface-2); }
 .split-media.evidence-visual-media img { object-fit: contain; }
+.evidence-showcase { margin: var(--space-8) auto 0; max-width: 980px; background: var(--surface-2); border: 1px solid var(--border-subtle, rgba(0,0,0,0.08)); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: var(--space-4); }
+.evidence-showcase img { display: block; width: 100%; height: auto; border-radius: calc(var(--radius-lg) - 6px); }
+.evidence-showcase figcaption { text-align: center; font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-4); }
+@media (max-width: 700px) { .evidence-showcase { padding: var(--space-3); } }
 .split.reverse .split-media { order: 2; }
 @media (max-width: 900px) { .split, .split.reverse .split-media { grid-template-columns: 1fr; order: unset; } }
 

@@ -1,0 +1,14 @@
+{
+  "_README": "THIS IS THE ONLY FILE THAT NEEDS EDITING TO CHANGE APPOINTMENT AVAILABILITY. Edit 'days' below. Dates in the past disappear from the website automatically — you never have to clean up stale slots. If 'days' is empty or every date has passed, the website stops showing a slot picker and shows an email fallback instead, so the site can never display a time that is not real.",
+  "_HOW_TO_EDIT": "Each entry in 'days' needs a date (YYYY-MM-DD) and a list of times. Times use 24-hour format ('09:00', '14:30'). Set \"status\": \"taken\" to show a time as already booked (it appears greyed out and cannot be selected). Delete the line entirely to hide it completely.",
+  "_BOOKING_URL_NOTE": "When the Google Calendar appointment schedule exists, paste its booking-page link into 'booking_url' below. The website will then send patients straight to Google Calendar for real self-scheduling, and the manual slot picker is bypassed automatically. Until then leave it as null.",
+
+  "timezone": "America/Los_Angeles",
+  "timezone_label": "Pacific Time",
+  "last_updated": "2026-10-26",
+  "response_time": "two business days",
+  "request_email": "contact@lumenahealthclinic.com",
+  "booking_url": null,
+
+  "days": []
+}

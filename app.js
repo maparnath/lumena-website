@@ -65,17 +65,17 @@
     },
     {
       q: "What services does LUMENA offer?",
-      a: "Pulmonary second opinions, metabolic health and weight management (including a physician-supervised GLP-1/GIP program), and functional assessment testing like VO2 max and body composition. See the What We Treat page for details.",
+      a: "Ongoing pulmonary care and second opinions (breathlessness, chronic cough, sleep apnea, COPD and more), metabolic health and weight management (including a physician-supervised GLP-1/GIP program), and functional assessment testing like VO2 max and body composition. See the What We Treat page for details.",
       k: ["services", "offer", "treat", "programs", "what do you do", "pulmonary", "weight", "metabolic", "functional"]
     },
     {
       q: "How much does it cost?",
-      a: "Cost depends on which tests and services fit you, confirmed together at your consultation. You'll get a written Good Faith Estimate before anything begins \u2014 see our Care Plans page for what's included in each starting bundle.",
+      a: "Pricing is transparent. Every visit and test is explained and priced before you agree to it \u2014 no surprises and no hidden fees. Contact us and we'll walk you through what applies to you.",
       k: ["cost", "price", "pricing", "how much", "fee", "expensive"]
     },
     {
       q: "Can I get a second opinion if I already have a pulmonary doctor?",
-      a: "Yes \u2014 pulmonary second opinions are open to anyone not currently under this physician's insurance-based care, to keep the review independent and free of conflict of interest.",
+      a: "Yes. LUMENA offers both pulmonary second opinions and ongoing pulmonary care. Reviews are independent of any insurance-based practice.",
       k: ["second opinion", "pulmonary", "copd", "sleep apnea", "osa", "lung"]
     },
     {
@@ -90,7 +90,7 @@
     },
     {
       q: "Do you offer GLP-1 or weight-loss medication?",
-      a: "Yes, through a physician-supervised metabolic program. Eli Lilly\u2013supplied medication samples may be available to qualifying patients at no charge, subject to a medical evaluation and availability. See the What We Treat page for details.",
+      a: "When it is medically appropriate, yes \u2014 FDA-approved medication as part of a physician-supervised metabolic program, decided after an evaluation. See the What We Treat page for details.",
       k: ["glp-1", "glp1", "gip", "tirzepatide", "semaglutide", "weight loss medication", "zepbound", "mounjaro", "sample", "samples"]
     }
   ];
@@ -113,8 +113,8 @@
     var launcher = document.createElement("button");
     launcher.className = "chat-launcher";
     launcher.type = "button";
-    launcher.setAttribute("aria-label", "Open LUMENA Assistant");
-    launcher.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>Ask LUMENA</span>';
+    launcher.setAttribute("aria-label", "Open common questions");
+    launcher.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>Common Questions</span>';
 
     var panel = document.createElement("div");
     panel.className = "chat-panel";
@@ -194,54 +194,163 @@
   }
 
   buildChatWidget();
+})();
 
-  // ---- Inquiry / lead form (contact.html) ----
-  var API_BASE = (function () {
-    var p = "__PORT_8000__";
-    return p.indexOf("__") === 0 ? "http://localhost:8000" : p;
-  })();
+/* ---- Booking: slot selection + honest submit ---- */
+(function(){
+  var form = document.getElementById('bookingForm');
+  if(!form) return;
+  var chosen  = document.getElementById('chosenSlot');
+  var status  = document.getElementById('bookingStatus');
+  var slotBox = document.getElementById('slotContainer');
+  var meta    = document.getElementById('slotMeta');
+  var cfg     = null;
 
-  var leadForm = document.getElementById("lead-form");
-  if (leadForm) {
-    leadForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var status = document.getElementById("lf-status");
-      var submitBtn = document.getElementById("lf-submit");
-      var payload = {
-        name: document.getElementById("lf-name").value.trim(),
-        email: document.getElementById("lf-email").value.trim(),
-        phone: document.getElementById("lf-phone").value.trim(),
-        interest: document.getElementById("lf-interest").value,
-        message: document.getElementById("lf-message").value.trim()
-      };
-      if (!payload.name || !payload.email) {
-        status.textContent = "Please add your name and email.";
-        status.className = "err";
-        return;
-      }
-      submitBtn.disabled = true;
-      status.textContent = "Sending...";
-      status.className = "";
-      fetch(API_BASE + "/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-        .then(function (res) {
-          if (!res.ok) throw new Error("request failed");
-          return res.json();
-        })
-        .then(function () {
-          status.textContent = "Thank you — we've received your request and will reach out directly.";
-          status.className = "ok";
-          leadForm.reset();
-          submitBtn.disabled = false;
-        })
-        .catch(function () {
-          status.textContent = "Something went wrong. Please try again, or reach out directly once contact details are live.";
-          status.className = "err";
-          submitBtn.disabled = false;
-        });
+  function pad(n){ return (n<10?'0':'')+n; }
+  function localDate(iso){
+    var p = iso.split('-');
+    return new Date(+p[0], +p[1]-1, +p[2]);
+  }
+  function dayName(d){
+    return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
+  }
+  function monthDay(d){
+    var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+    return m + ' ' + d.getDate();
+  }
+  function pretty(t){
+    var p = t.split(':'), h = +p[0], m = p[1];
+    var ap = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12; if(h12 === 0) h12 = 12;
+    return h12 + ':' + m + ' ' + ap;
+  }
+  function todayMidnight(){
+    var n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+
+  function fallback(msg){
+    slotBox.innerHTML = '<div class="slot-empty">' +
+      '<p>' + msg + '</p>' +
+      '<p class="slot-empty-action">Email <a href="mailto:contact@lumenahealthclinic.com?subject=%5BLUMENA%20NEW%20INQUIRY%5D%20Request%20to%20connect">contact@lumenahealthclinic.com</a> ' +
+      'with a few times that work for you and we will confirm one.</p>' +
+      '</div>';
+    if(meta) meta.textContent = '';
+    var btn = form.querySelector('button[type="submit"]');
+    if(btn) btn.disabled = true;
+  }
+
+  function render(data){
+    cfg = data;
+    var upcoming = (data.days || []).filter(function(d){
+      return localDate(d.date) >= todayMidnight();
+    }).sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+
+    if(!upcoming.length){
+      fallback('We have not posted appointment times yet — we are opening soon.');
+      return;
+    }
+
+    var html = '';
+    upcoming.forEach(function(day){
+      var d = localDate(day.date);
+      var open = (day.times || []);
+      if(!open.length) return;
+      html += '<div class="slot-day">' +
+        '<div class="slot-day-label"><strong>' + dayName(d) + '</strong><span>' + monthDay(d) + '</span></div>' +
+        '<div class="slot-row">';
+      open.forEach(function(t){
+        var label = pretty(t.time);
+        var value = dayName(d) + ' ' + monthDay(d) + ', ' + label;
+        if(t.status === 'taken'){
+          html += '<label class="slot is-taken"><input type="radio" name="slot" disabled><span>' + label + '</span></label>';
+        } else {
+          html += '<label class="slot"><input type="radio" name="slot" value="' + value + '"><span>' + label + '</span></label>';
+        }
+      });
+      html += '</div></div>';
+    });
+
+    if(!html){
+      fallback('We have not posted appointment times yet — we are opening soon.');
+      return;
+    }
+    slotBox.innerHTML = html;
+
+    if(meta){
+      meta.textContent = 'All times ' + (data.timezone_label || 'Pacific Time') +
+        '. We reply within ' + (data.response_time || 'two business days') + '.';
+    }
+
+    slotBox.querySelectorAll('input[name="slot"]').forEach(function(r){
+      r.addEventListener('change', function(){
+        chosen.textContent = 'Selected: ' + r.value;
+        chosen.classList.add('is-set');
+        status.textContent = '';
+        status.className = 'booking-status';
+      });
     });
   }
+
+  fetch('./schedule.json', { cache: 'no-store' })
+    .then(function(r){ if(!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(function(data){
+      // If a real booking page exists, send people straight there.
+      if(data.booking_url){
+        document.querySelectorAll('a[href="#book"], a[href="./index.html#book"], a[href="index.html#book"]').forEach(function(a){
+          a.setAttribute('href', data.booking_url);
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener');
+        });
+      }
+      render(data);
+    })
+    .catch(function(){
+      fallback('We could not load our current appointment times.');
+    });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    status.className = 'booking-status';
+
+    var slot = slotBox ? slotBox.querySelector('input[name="slot"]:checked') : null;
+    if(!slot){
+      status.textContent = 'Please choose a time above first.';
+      status.classList.add('err'); return;
+    }
+    var nm = form.name.value.trim(), em = form.email.value.trim(), ph = form.phone.value.trim();
+    if(!nm || !em || !ph){
+      status.textContent = 'Name, email, and phone are needed so we can confirm.';
+      status.classList.add('err'); return;
+    }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){
+      status.textContent = 'That email address does not look complete — please check it.';
+      status.classList.add('err'); return;
+    }
+
+    var to = (cfg && cfg.request_email) || 'contact@lumenahealthclinic.com';
+    var lines = [
+      'Requested time: ' + slot.value + ' (' + ((cfg && cfg.timezone_label) || 'Pacific Time') + ')',
+      '',
+      'Name:  ' + nm,
+      'Email: ' + em,
+      'Phone: ' + ph,
+      '',
+      'What I would like help with:',
+      (form.reason.value.trim() || '(not provided)'),
+      '',
+      '— Sent from the appointment request form at lumenahealthclinic.com'
+    ].join('\n');
+
+    var href = 'mailto:' + to +
+      '?subject=' + encodeURIComponent('[LUMENA NEW INQUIRY] Request to connect') +
+      '&body=' + encodeURIComponent(lines);
+
+    window.location.href = href;
+
+    status.textContent = 'Your email program should now open with this request ready to send. ' +
+      'It is not booked until you press send and we reply to confirm. ' +
+      'If nothing opened, email ' + to + ' directly.';
+    status.classList.add('ok');
+  });
 })();

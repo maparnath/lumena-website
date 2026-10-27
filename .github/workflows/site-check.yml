@@ -1,0 +1,20 @@
+name: LUMENA live site check
+on:
+  schedule:
+    - cron: '0 */4 * * *'   # every 4 hours
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: Wait for Render to publish (push only)
+        if: github.event_name == 'push'
+        run: sleep 120
+      - run: python .github/qa/site_check.py

@@ -31,8 +31,8 @@ with sync_playwright() as p:
         if bad: problems.append(f'@{w}px failed files: {sorted(set(bad))[:5]}')
         # contact chooser must open from every contact link and from the form
         pg.goto(BASE + 'contact.html', wait_until='networkidle')
-        for i in range(pg.locator('a[href^="mailto:contact@"]').count()):
-            pg.locator('a[href^="mailto:contact@"]').nth(i).click(); pg.wait_for_timeout(300)
+        for i in range(pg.locator('a[href^="mailto:lrubio@"]').count()):
+            pg.locator('a[href^="mailto:lrubio@"]').nth(i).click(); pg.wait_for_timeout(300)
             if not pg.is_visible('.cc-box'): problems.append(f'contact link #{i+1} @ {w}px: contact window did not open')
             else:
                 g = pg.get_attribute('[data-cc="gmail"]', 'href') or ''

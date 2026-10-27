@@ -214,7 +214,7 @@
 
 /* ---- Contact chooser: works even when no email app is set up ---- */
 (function(){
-  var TO = 'contact@lumenahealthclinic.com';
+  var TO = 'lrubio@lumenahealthclinic.com';
   var SUBJECT = '[LUMENA NEW INQUIRY] Request to connect';
   var DEFAULT_BODY = "Hello LUMENA,\nI'm interested in learning more or scheduling a visit.\nPreferred name:\nBest callback number (optional):\nBest time to reach me:\n\nPlease do not include medical records or detailed health information in this email.";
 
@@ -263,9 +263,9 @@
   });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
 
-  // Any contact@ mailto link on the site opens the chooser instead.
+  // Any public-contact mailto link on the site opens the chooser instead.
   document.addEventListener('click', function(e){
-    var a = e.target.closest('a[href^="mailto:contact@"]');
+    var a = e.target.closest('a[href^="mailto:lrubio@"]');
     if (!a || a.closest('.cc-overlay')) return;
     e.preventDefault(); open();
   });

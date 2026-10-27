@@ -851,3 +851,7 @@ p { color: var(--text-muted); }
 .chat-a{padding:0 13px 12px;font-size:var(--text-sm);line-height:var(--leading-normal);color:var(--text-muted);}
 .chat-none{font-size:var(--text-sm);background:var(--surface-2);border-radius:var(--radius-md);padding:10px 13px;flex-shrink:0;}
 .chat-contact{font:inherit;font-weight:600;color:var(--primary);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;}
+
+/* plain FAQ: always visible */
+.faq-item h3{ font-size:var(--text-base); font-weight:600; margin:0; }
+.faq-item p{ margin-top:var(--space-2); }

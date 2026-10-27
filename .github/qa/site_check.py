@@ -44,17 +44,12 @@ with sync_playwright() as p:
         if not pg.is_visible('.cc-box'): problems.append(f'sign-up form @ {w}px: contact window did not open')
         # FAQ assistant
         pg.goto(BASE + 'index.html', wait_until='networkidle')
-        pg.click('.chat-launcher'); pg.wait_for_timeout(300)
-        if not pg.is_visible('.chat-panel'): problems.append(f'Common Questions @ {w}px did not open')
-        n_q = pg.locator('.chat-q').count()
-        if n_q < 5: problems.append(f'Common Questions @ {w}px shows only {n_q} questions')
-        for i in range(n_q):
-            pg.locator('.chat-q').nth(i).click(); pg.wait_for_timeout(350)
-            a = pg.locator('.chat-a').nth(i); bx = a.bounding_box(); pb = pg.locator('.chat-body').bounding_box()
-            if not (a.is_visible() and bx and pb and pb['y'] - 1 <= bx['y'] < pb['y'] + pb['height'] and len(a.inner_text().strip()) > 20):
-                problems.append(f'Common Questions @ {w}px: answer #{i+1} not visible')
-        pg.fill('.chat-input', 'do you take insurance'); pg.press('.chat-input', 'Enter'); pg.wait_for_timeout(300)
-        if pg.locator('.chat-qa.is-open').count() != 1: problems.append(f'Common Questions @ {w}px: typed question gave no answer')
+        if pg.locator('.chat-launcher').count(): problems.append(f'Floating chat bubble is back @ {w}px (covers buttons)')
+        items = pg.locator('.faq-item')
+        if items.count() < 5: problems.append(f'Homepage FAQ @ {w}px shows only {items.count()} questions')
+        for k in range(items.count()):
+            p_ = items.nth(k).locator('p')
+            if not p_.count() or not p_.first.is_visible(): problems.append(f'Homepage FAQ answer #{k+1} not visible without clicking @ {w}px')
         # theme toggle
         t = pg.query_selector('[data-theme-toggle],[aria-label*="theme" i],[aria-label*="dark" i]')
         if t:

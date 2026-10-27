@@ -209,7 +209,7 @@
     });
   }
 
-  buildChatWidget();
+  /* floating FAQ widget retired 2026-10-26: answers now shown directly on the page */
 })();
 
 /* ---- Contact chooser: works even when no email app is set up ---- */

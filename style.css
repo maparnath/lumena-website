@@ -838,3 +838,16 @@ p { color: var(--text-muted); }
 .btn{white-space:normal;text-align:center;max-width:100%;}
 .hero-grid>*,.dx-radial-list,.dx-rl-group{min-width:0;}
 .hero-visual--diagram{max-width:100%;box-sizing:border-box;}
+
+/* ---- Common Questions: accordion answers ---- */
+.chat-body{gap:var(--space-2);}
+.chat-intro{font-size:var(--text-xs);color:var(--text-muted);margin:0 0 var(--space-1);}
+.chat-qa{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);overflow:hidden;flex-shrink:0;}
+.chat-qa.is-open{border-color:var(--primary);}
+.chat-q{width:100%;display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3);text-align:left;padding:10px 13px;font:inherit;font-size:var(--text-sm);font-weight:500;color:var(--text);background:none;border:0;cursor:pointer;line-height:1.4;}
+.chat-q i{font-style:normal;color:var(--primary);font-weight:600;flex-shrink:0;}
+.chat-qa.is-open .chat-q i{transform:rotate(45deg);}
+.chat-q:hover{color:var(--primary);}
+.chat-a{padding:0 13px 12px;font-size:var(--text-sm);line-height:var(--leading-normal);color:var(--text-muted);}
+.chat-none{font-size:var(--text-sm);background:var(--surface-2);border-radius:var(--radius-md);padding:10px 13px;flex-shrink:0;}
+.chat-contact{font:inherit;font-weight:600;color:var(--primary);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;}

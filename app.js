@@ -142,51 +142,67 @@
     var input = panel.querySelector(".chat-input");
     var sendBtn = panel.querySelector(".chat-send");
     var closeBtn = panel.querySelector(".chat-panel-close");
+    suggestions.remove();
 
-    function addMsg(text, who) {
-      var msg = document.createElement("div");
-      msg.className = "chat-msg " + who;
-      msg.textContent = text;
-      body.appendChild(msg);
-      body.scrollTop = body.scrollHeight;
-    }
+    var intro = document.createElement("p");
+    intro.className = "chat-intro";
+    intro.textContent = "Tap a question to see the answer, or type your own below.";
+    body.appendChild(intro);
 
-    function greet() {
-      if (body.children.length) return;
-      addMsg("Hi \u2014 ask me about services, pricing, insurance, or the GLP-1/GIP program. Pick a question below or type your own.", "bot");
-      FAQ.slice(0, 6).forEach(function (item) {
-        var chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "chat-chip";
-        chip.textContent = item.q;
-        chip.addEventListener("click", function () { ask(item.q); });
-        suggestions.appendChild(chip);
-      });
+    var items = [];
+    FAQ.forEach(function (item, i) {
+      var wrap = document.createElement("div");
+      wrap.className = "chat-qa";
+      var q = document.createElement("button");
+      q.type = "button"; q.className = "chat-q";
+      q.setAttribute("aria-expanded", "false");
+      q.id = "chatq" + i; q.setAttribute("aria-controls", "chata" + i);
+      q.innerHTML = '<span></span><i aria-hidden="true">+</i>';
+      q.querySelector("span").textContent = item.q;
+      var a = document.createElement("div");
+      a.className = "chat-a"; a.id = "chata" + i; a.hidden = true;
+      a.setAttribute("role", "region"); a.setAttribute("aria-labelledby", q.id);
+      a.textContent = item.a;
+      q.addEventListener("click", function () { toggle(i); });
+      wrap.appendChild(q); wrap.appendChild(a); body.appendChild(wrap);
+      items.push({ q: q, a: a });
+    });
+
+    var none = document.createElement("div");
+    none.className = "chat-none"; none.hidden = true;
+    none.innerHTML = 'We don\u2019t have a written answer for that yet. <button type="button" class="chat-contact">Contact us</button> and a person will reply.';
+    none.querySelector(".chat-contact").addEventListener("click", function () { closePanel(); if (window.lumenaContact) window.lumenaContact(); });
+    body.appendChild(none);
+
+    function toggle(i, forceOpen) {
+      var it = items[i], open = forceOpen || it.a.hidden;
+      items.forEach(function (o) { o.a.hidden = true; o.q.setAttribute("aria-expanded", "false"); o.q.parentNode.classList.remove("is-open"); });
+      if (open) {
+        it.a.hidden = false; it.q.setAttribute("aria-expanded", "true"); it.q.parentNode.classList.add("is-open");
+        none.hidden = true;
+        it.q.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
     }
 
     function ask(text) {
       if (!text.trim()) return;
-      addMsg(text, "user");
       var match = faqAnswerFor(text);
-      if (match) {
-        addMsg(match.a, "bot");
-      } else {
-        addMsg("I don't have a written answer for that yet. Please reach out through our Contact page and we'll get back to you directly.", "bot");
+      if (match) { toggle(FAQ.indexOf(match), true); }
+      else {
+        items.forEach(function (o) { o.a.hidden = true; o.q.setAttribute("aria-expanded", "false"); o.q.parentNode.classList.remove("is-open"); });
+        none.hidden = false; none.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
       input.value = "";
     }
 
-    function openPanel() {
-      panel.classList.add("is-open");
-      greet();
-      input.focus();
-    }
+    function openPanel() { panel.classList.add("is-open"); }
     function closePanel() { panel.classList.remove("is-open"); }
 
     launcher.addEventListener("click", function () {
       panel.classList.contains("is-open") ? closePanel() : openPanel();
     });
     closeBtn.addEventListener("click", closePanel);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanel(); });
     sendBtn.addEventListener("click", function () { ask(input.value); });
     input.addEventListener("keydown", function (e) {
       if (e.key === "Enter") ask(input.value);

@@ -810,3 +810,5 @@ p { color: var(--text-muted); }
 
 /* mobile list: title already says it */
 .dx-rl-center{display:none!important;}
+
+.interest-form{max-width:560px;margin:var(--space-8) auto 0;}

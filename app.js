@@ -196,161 +196,41 @@
   buildChatWidget();
 })();
 
-/* ---- Booking: slot selection + honest submit ---- */
+/* ---- Opening-soon interest form: honest mailto, no backend ---- */
 (function(){
-  var form = document.getElementById('bookingForm');
-  if(!form) return;
-  var chosen  = document.getElementById('chosenSlot');
-  var status  = document.getElementById('bookingStatus');
-  var slotBox = document.getElementById('slotContainer');
-  var meta    = document.getElementById('slotMeta');
-  var cfg     = null;
-
-  function pad(n){ return (n<10?'0':'')+n; }
-  function localDate(iso){
-    var p = iso.split('-');
-    return new Date(+p[0], +p[1]-1, +p[2]);
-  }
-  function dayName(d){
-    return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
-  }
-  function monthDay(d){
-    var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-    return m + ' ' + d.getDate();
-  }
-  function pretty(t){
-    var p = t.split(':'), h = +p[0], m = p[1];
-    var ap = h >= 12 ? 'PM' : 'AM';
-    var h12 = h % 12; if(h12 === 0) h12 = 12;
-    return h12 + ':' + m + ' ' + ap;
-  }
-  function todayMidnight(){
-    var n = new Date();
-    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  }
-
-  function fallback(msg){
-    slotBox.innerHTML = '<div class="slot-empty">' +
-      '<p>' + msg + '</p>' +
-      '<p class="slot-empty-action">Email <a href="mailto:contact@lumenahealthclinic.com?subject=%5BLUMENA%20NEW%20INQUIRY%5D%20Request%20to%20connect">contact@lumenahealthclinic.com</a> ' +
-      'with a few times that work for you and we will confirm one.</p>' +
-      '</div>';
-    if(meta) meta.textContent = '';
-    var btn = form.querySelector('button[type="submit"]');
-    if(btn) btn.disabled = true;
-  }
-
-  function render(data){
-    cfg = data;
-    var upcoming = (data.days || []).filter(function(d){
-      return localDate(d.date) >= todayMidnight();
-    }).sort(function(a,b){ return a.date < b.date ? -1 : 1; });
-
-    if(!upcoming.length){
-      fallback('We have not posted appointment times yet — we are opening soon.');
-      return;
-    }
-
-    var html = '';
-    upcoming.forEach(function(day){
-      var d = localDate(day.date);
-      var open = (day.times || []);
-      if(!open.length) return;
-      html += '<div class="slot-day">' +
-        '<div class="slot-day-label"><strong>' + dayName(d) + '</strong><span>' + monthDay(d) + '</span></div>' +
-        '<div class="slot-row">';
-      open.forEach(function(t){
-        var label = pretty(t.time);
-        var value = dayName(d) + ' ' + monthDay(d) + ', ' + label;
-        if(t.status === 'taken'){
-          html += '<label class="slot is-taken"><input type="radio" name="slot" disabled><span>' + label + '</span></label>';
-        } else {
-          html += '<label class="slot"><input type="radio" name="slot" value="' + value + '"><span>' + label + '</span></label>';
-        }
-      });
-      html += '</div></div>';
-    });
-
-    if(!html){
-      fallback('We have not posted appointment times yet — we are opening soon.');
-      return;
-    }
-    slotBox.innerHTML = html;
-
-    if(meta){
-      meta.textContent = 'All times ' + (data.timezone_label || 'Pacific Time') +
-        '. We reply within ' + (data.response_time || 'two business days') + '.';
-    }
-
-    slotBox.querySelectorAll('input[name="slot"]').forEach(function(r){
-      r.addEventListener('change', function(){
-        chosen.textContent = 'Selected: ' + r.value;
-        chosen.classList.add('is-set');
-        status.textContent = '';
-        status.className = 'booking-status';
-      });
-    });
-  }
-
+  var TO = 'contact@lumenahealthclinic.com';
+  var SUBJECT = '[LUMENA NEW INQUIRY] Request to connect';
   fetch('./schedule.json', { cache: 'no-store' })
-    .then(function(r){ if(!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(data){
-      // If a real booking page exists, send people straight there.
-      if(data.booking_url){
+      if(data && data.booking_url){
         document.querySelectorAll('a[href="#book"], a[href="./index.html#book"], a[href="index.html#book"]').forEach(function(a){
-          a.setAttribute('href', data.booking_url);
-          a.setAttribute('target', '_blank');
-          a.setAttribute('rel', 'noopener');
+          a.setAttribute('href', data.booking_url); a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener');
         });
       }
-      render(data);
-    })
-    .catch(function(){
-      fallback('We could not load our current appointment times.');
-    });
+    }).catch(function(){});
 
+  var form = document.getElementById('bookingForm');
+  if(!form) return;
+  var status = document.getElementById('bookingStatus');
   form.addEventListener('submit', function(e){
     e.preventDefault();
     status.className = 'booking-status';
-
-    var slot = slotBox ? slotBox.querySelector('input[name="slot"]:checked') : null;
-    if(!slot){
-      status.textContent = 'Please choose a time above first.';
-      status.classList.add('err'); return;
-    }
     var nm = form.name.value.trim(), em = form.email.value.trim(), ph = form.phone.value.trim();
-    if(!nm || !em || !ph){
-      status.textContent = 'Name, email, and phone are needed so we can confirm.';
-      status.classList.add('err'); return;
-    }
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){
-      status.textContent = 'That email address does not look complete — please check it.';
-      status.classList.add('err'); return;
-    }
-
-    var to = (cfg && cfg.request_email) || 'contact@lumenahealthclinic.com';
+    if(!nm){ status.textContent = 'Please add your name.'; status.classList.add('err'); return; }
+    if(!em && !ph){ status.textContent = 'Please leave an email or a cell number so we can reach you.'; status.classList.add('err'); return; }
+    if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ status.textContent = 'That email address does not look complete. Please check it.'; status.classList.add('err'); return; }
     var lines = [
-      'Requested time: ' + slot.value + ' (' + ((cfg && cfg.timezone_label) || 'Pacific Time') + ')',
-      '',
+      'Hello LUMENA,', '',
+      'Please contact me when appointments open.', '',
       'Name:  ' + nm,
-      'Email: ' + em,
-      'Phone: ' + ph,
-      '',
-      'What I would like help with:',
-      (form.reason.value.trim() || '(not provided)'),
-      '',
-      '— Sent from the appointment request form at lumenahealthclinic.com'
+      'Email: ' + (em || '(not provided)'),
+      'Cell:  ' + (ph || '(not provided)'), '',
+      'Interested in: ' + (form.reason.value.trim() || '(not provided)'), '',
+      '- Sent from lumenahealthclinic.com'
     ].join('\n');
-
-    var href = 'mailto:' + to +
-      '?subject=' + encodeURIComponent('[LUMENA NEW INQUIRY] Request to connect') +
-      '&body=' + encodeURIComponent(lines);
-
-    window.location.href = href;
-
-    status.textContent = 'Your email program should now open with this request ready to send. ' +
-      'It is not booked until you press send and we reply to confirm. ' +
-      'If nothing opened, email ' + to + ' directly.';
+    window.location.href = 'mailto:' + TO + '?subject=' + encodeURIComponent(SUBJECT) + '&body=' + encodeURIComponent(lines);
+    status.textContent = 'Your email app should open with your message ready. Press send to reach us. If nothing opened, email ' + TO + ' directly.';
     status.classList.add('ok');
   });
 })();

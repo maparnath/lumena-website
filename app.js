@@ -196,10 +196,67 @@
   buildChatWidget();
 })();
 
-/* ---- Opening-soon interest form: honest mailto, no backend ---- */
+/* ---- Contact chooser: works even when no email app is set up ---- */
 (function(){
   var TO = 'contact@lumenahealthclinic.com';
   var SUBJECT = '[LUMENA NEW INQUIRY] Request to connect';
+  var DEFAULT_BODY = "Hello LUMENA,\nI'm interested in learning more or scheduling a visit.\nPreferred name:\nBest callback number (optional):\nBest time to reach me:\n\nPlease do not include medical records or detailed health information in this email.";
+
+  var modal = document.createElement('div');
+  modal.className = 'cc-overlay';
+  modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby','ccTitle');
+  modal.innerHTML =
+    '<div class="cc-box">' +
+      '<button type="button" class="cc-close" aria-label="Close">&times;</button>' +
+      '<h3 id="ccTitle">Contact LUMENA</h3>' +
+      '<p class="cc-sub">Choose how you would like to send your message. Your message is already written for you.</p>' +
+      '<div class="cc-actions">' +
+        '<a class="btn btn-primary btn-block" data-cc="gmail" target="_blank" rel="noopener">Send with Gmail</a>' +
+        '<a class="btn btn-secondary btn-block cc-btn" data-cc="outlook" target="_blank" rel="noopener">Send with Outlook / Hotmail</a>' +
+        '<a class="btn btn-secondary btn-block cc-btn" data-cc="yahoo" target="_blank" rel="noopener">Send with Yahoo Mail</a>' +
+        '<a class="btn btn-secondary btn-block cc-btn" data-cc="app">Use my computer\u2019s email app</a>' +
+      '</div>' +
+      '<div class="cc-copy"><span>Or email us directly:</span><strong>' + TO + '</strong>' +
+        '<button type="button" class="cc-copybtn">Copy address</button></div>' +
+      '<p class="cc-note">Please do not include medical details. A member of our team will reply personally.</p>' +
+    '</div>';
+  document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(modal); });
+  if (document.readyState !== 'loading') document.body.appendChild(modal);
+
+  function open(body){
+    var s = encodeURIComponent(SUBJECT), b = encodeURIComponent(body || DEFAULT_BODY), t = encodeURIComponent(TO);
+    modal.querySelector('[data-cc="gmail"]').href   = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + t + '&su=' + s + '&body=' + b;
+    modal.querySelector('[data-cc="outlook"]').href = 'https://outlook.live.com/mail/0/deeplink/compose?to=' + t + '&subject=' + s + '&body=' + b;
+    modal.querySelector('[data-cc="yahoo"]').href   = 'https://compose.mail.yahoo.com/?to=' + t + '&subject=' + s + '&body=' + b;
+    modal.querySelector('[data-cc="app"]').href     = 'mailto:' + TO + '?subject=' + s + '&body=' + b;
+    modal.classList.add('is-open');
+    modal.querySelector('[data-cc="gmail"]').focus();
+  }
+  function close(){ modal.classList.remove('is-open'); }
+  window.lumenaContact = open;
+
+  modal.addEventListener('click', function(e){
+    if (e.target === modal || e.target.closest('.cc-close')) close();
+    if (e.target.closest('.cc-actions a')) setTimeout(close, 300);
+    var cb = e.target.closest('.cc-copybtn');
+    if (cb){
+      var done = function(){ cb.textContent = 'Copied'; setTimeout(function(){ cb.textContent = 'Copy address'; }, 2000); };
+      if (navigator.clipboard) navigator.clipboard.writeText(TO).then(done, function(){ window.prompt('Copy this address:', TO); });
+      else window.prompt('Copy this address:', TO);
+    }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+
+  // Any contact@ mailto link on the site opens the chooser instead.
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a[href^="mailto:contact@"]');
+    if (!a || a.closest('.cc-overlay')) return;
+    e.preventDefault(); open();
+  });
+})();
+
+/* ---- Opening-soon interest form ---- */
+(function(){
   fetch('./schedule.json', { cache: 'no-store' })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(data){
@@ -229,8 +286,8 @@
       'Interested in: ' + (form.reason.value.trim() || '(not provided)'), '',
       '- Sent from lumenahealthclinic.com'
     ].join('\n');
-    window.location.href = 'mailto:' + TO + '?subject=' + encodeURIComponent(SUBJECT) + '&body=' + encodeURIComponent(lines);
-    status.textContent = 'Your email app should open with your message ready. Press send to reach us. If nothing opened, email ' + TO + ' directly.';
+    window.lumenaContact(lines);
+    status.textContent = 'Choose how to send it in the window that opened, then press send.';
     status.classList.add('ok');
   });
 })();

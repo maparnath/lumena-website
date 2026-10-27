@@ -36,7 +36,7 @@ with sync_playwright() as p:
             if not pg.is_visible('.cc-box'): problems.append(f'contact link #{i+1} @ {w}px: contact window did not open')
             else:
                 g = pg.get_attribute('[data-cc="gmail"]', 'href') or ''
-                if 'contact%40lumenahealthclinic.com' not in g or 'LUMENA%20NEW%20INQUIRY' not in g: problems.append('Gmail option has wrong address/subject')
+                if 'lrubio%40lumenahealthclinic.com' not in g or 'LUMENA%20NEW%20INQUIRY' not in g: problems.append('Gmail option has wrong address/subject')
             pg.keyboard.press('Escape'); pg.wait_for_timeout(200)
         pg.goto(BASE + 'index.html#book', wait_until='networkidle')
         pg.fill('#bookingForm [name=name]', 'QC Test'); pg.fill('#bookingForm [name=phone]', '5550000000')
